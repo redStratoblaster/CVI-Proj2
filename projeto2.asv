@@ -19,37 +19,36 @@ truthMatrix = [];
 
 
 fid = fopen('det.txt','rt');
+parsedArray = [];
 while true
   thisline = fgetl(fid);
   if ~ischar(thisline); break; end  %end of file
   parsedLine = strsplit(thisline,',');
-  parsedArray = [];
+  numParsedLine = [];
   for i = 1:10
-      cell = parsedLine(i);
-      str = cell{1};
-      value = str2num(str);
-      parsedArray = [parsedArray value];
+    numParsedLine = [numPars
   end
+  numParsedLine = str2num(parsedLine);
+  parsedArray = cell2mat(parsedLine);
   truthMatrix = vertcat(truthMatrix, parsedArray);
 end
   fclose(fid);
   
 for i = 1:N
-    Img=imread(sprintf(strcat(path,'%.6d.jpg'), i));
-    imshow(Img); drawnow;
-    firstLine = truthMatrix(1,:);
+    I=imread(sprintf(strcat(path,'%.6d.jpg'), i));
+    imshow(I); drawnow;
+    firstLine = truthMatrix(1);
     while(firstLine(1) == i)
         box1 = rectangle('Position',...
-              [firstLine(3),...
-               firstLine(4),...
-               firstLine(5),...
-               firstLine(6)],...
-              'EdgeColor',[1 1 0],...
-              'FaceColor',[1 1 0 0.05]);
+               [[firstLine(3), firstLine(4)],...
+               [firstLine(3)+firstLine(5), firstLine(4)],...
+               [firstLine(3), firstLine(4)-firstLine(6)],...
+               [firstLine(3)+firstLine(5), firstLine(4)-firstLine(6)]],...
+              'EdgeColor',[1 0 0],...
+              'FaceColor',[1 0 0 0.02]);
         truthMatrix(1,:) = [];
-        firstLine = truthMatrix(1,:);
+        firstLine = truthMatrix(1);
     end
-    %pause(0.01);
-    hold on
+    hold off
 end
 %you have now loaded all of the data.
