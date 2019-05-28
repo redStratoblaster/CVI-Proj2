@@ -73,12 +73,10 @@ for i = 1:N
     bkgB = bkg(:,:,3);
     Y = (abs(double(bkgR) - double(imgR))+...
          abs(double(bkgG) - double(imgG))+...
-         abs(double(bkgB) - double(imgB))) > 128;
-    y = imerode(Y, strel('disk',128,8));
-    y = imopen(Y, strel('disk',128,8));
-    y = imclose(Y, strel('disk',128,8));
-    y = imclose(Y, strel('disk',128,8));
-    y = imdilate(Y, strel('disk',128,8));    
+         abs(double(bkgB) - double(imgB))) > 100;
+    Y = imopen(Y, strel('disk',1,8));
+    Y = imclose(Y, strel('disk',8,8));
+    Y = imclose(Y, strel('disk',4,8));
     stats = regionprops(logical(Y), 'Area', 'BoundingBox');
     objIndex = find([stats.Area] > 1000);
     for n = 1 : numel(objIndex)
