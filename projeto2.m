@@ -3,6 +3,8 @@ clear all, close all;
 path = '3DMOT2015/test/AVG-TownCentre/img1/';
 N = 450;
 truthMatrix = [];
+stepN = 1;
+alfa = 0.01;
 
 % Ground truth data format
 % 1 - Frame number - Indicate at which frame the object is present
@@ -33,10 +35,22 @@ while true
   truthMatrix = vertcat(truthMatrix, parsedArray);
 end
   fclose(fid);
-  
+
+%calculate background
+bkg=imread(sprintf(strcat(path,'%.6d.jpg'), i));
 for i = 1:N
-    Img=imread(sprintf(strcat(path,'%.6d.jpg'), i));
-    imshow(Img); drawnow;
+    img = imread(sprintf(strcat(path,'%.6d.jpg'), i));
+    bkg = alfa * double(img) + (1-alfa) * double(bkg);
+end
+
+imgName = sprintf('%.6d.jpg', 1);
+img = imread(strcat(path, imgName));
+
+for i = 1:N
+    img = imread(sprintf(strcat(path,'%.6d.jpg'), i));
+    imshow(img);
+    
+    %plot the ground truth
     firstLine = truthMatrix(1,:);
     while(firstLine(1) == i)
         box1 = rectangle('Position',...
@@ -49,7 +63,38 @@ for i = 1:N
         truthMatrix(1,:) = [];
         firstLine = truthMatrix(1,:);
     end
-    %pause(0.01);
+    
+    %plot the trajectories
+    imgR = img(:,:,1);
+    imgG = img(:,:,2);
+    imgB = img(:,:,3);
+    bkgR = bkg(:,:,1);
+    bkgG = bkg(:,:,2);
+    bkgB = bkg(:,:,3);
+    Y = (abs(double(bkgR) - double(imgR))+...
+         abs(double(bkgG) - double(imgG))+...
+         abs(double(bkgB) - double(imgB))) > 128;
+    y = imerode(Y, strel('disk',128,8));
+    y = imopen(Y, strel('disk',128,8));
+    y = imclose(Y, strel('disk',128,8));
+    y = imclose(Y, strel('disk',128,8));
+    y = imdilate(Y, strel('disk',128,8));    
+    stats = regionprops(logical(Y), 'Area', 'BoundingBox');
+    objIndex = find([stats.Area] > 1000);
+    for n = 1 : numel(objIndex)
+        statsObj = stats(objIndex);
+        boundingBoxI = statsObj(n).BoundingBox;
+        rectangle('Position',...
+        [boundingBoxI(1),...
+        boundingBoxI(2),...
+        boundingBoxI(3),...
+        boundingBoxI(4)],...
+        'EdgeColor',[0 1 0],...
+        'FaceColor',[0 1 0 0.2]);
+    end
+    
+    drawnow;
+    pause(0.01);
     hold on
 end
 %you have now loaded all of the data.
