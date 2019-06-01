@@ -1,7 +1,7 @@
 clear all, close all;
 
-path = '3DMOT2015/test/AVG-TownCentre/img1/';
-N = 450;
+path = '3DMOT2015/test/PETS09-S2L2/img1/';
+N = 436;
 truthMatrix = [];
 stepN = 1;
 alfa = 0.01;
@@ -20,8 +20,9 @@ alfa = 0.01;
 % 9 - y - 3D y position of the pedestrian in real-world coordinates (?1 if not available)
 %10 - z - 3D z position of the pedestrian in real-world coordinates (?1 if not available)
 
-
-fid = fopen('det.txt','rt');
+gtFile = '../det/det.txt';
+filename = strcat(path, gtFile);
+fid = fopen(filename,'rt');
 while true
   thisline = fgetl(fid);
   if ~ischar(thisline); break; end  %end of file
@@ -66,7 +67,12 @@ for i = 1:N
               'EdgeColor',[1 1 0],...
               'FaceColor',[1 1 0 0.05]);
         truthMatrix(1,:) = [];
-        firstLine = truthMatrix(1,:);
+        [r, c] = size(truthMatrix);
+        if r ~= 0
+            firstLine = truthMatrix(1,:);
+        else
+            break;
+        end;
     end
     
     %plot the detected regions

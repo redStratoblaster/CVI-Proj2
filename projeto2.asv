@@ -4,7 +4,8 @@ path = '3DMOT2015/test/AVG-TownCentre/img1/';
 N = 450;
 truthMatrix = [];
 stepN = 1;
-alfa = 0.05;
+alfa = 0.01;
+
 
 % Ground truth data format
 % 1 - Frame number - Indicate at which frame the object is present
@@ -36,7 +37,7 @@ while true
 end
   fclose(fid);
 
-
+%calculate background
 bkg=imread(sprintf(strcat(path,'%.6d.jpg'), i));
 for i = 1:N
     img = imread(sprintf(strcat(path,'%.6d.jpg'), i));
@@ -45,11 +46,16 @@ end
 
 imgName = sprintf('%.6d.jpg', 1);
 img = imread(strcat(path, imgName));
+[height, width, colors] = size(img);
+heatmap = zeros(height, width);
 
 for i = 1:N
-    img=imread(sprintf(strcat(path,'%.6d.jpg'), i));
-    imshow(img); drawnow;
+    clf('reset');
+    img = imread(sprintf(strcat(path,'%.6d.jpg'), i));
+    imshow(img);
+    hold on;
     
+    %plot the ground truth
     firstLine = truthMatrix(1,:);
     while(firstLine(1) == i)
         box1 = rectangle('Position',...
@@ -60,17 +66,12 @@ for i = 1:N
               'EdgeColor',[1 1 0],...
               'FaceColor',[1 1 0 0.05]);
         truthMatrix(1,:) = [];
+        [r c] = truthMatrix
+        if 
         firstLine = truthMatrix(1,:);
     end
     
-    
-    pause(0.01);
-    hold on
-end
-
-for n = 1 : stepN : N
-    imgName = sprintf('%.6d.jpg', n);
-    img = imread(strcat(path, imgName));
+    %plot the detected regions
     imgR = img(:,:,1);
     imgG = img(:,:,2);
     imgB = img(:,:,3);
@@ -79,14 +80,12 @@ for n = 1 : stepN : N
     bkgB = bkg(:,:,3);
     Y = (abs(double(bkgR) - double(imgR))+...
          abs(double(bkgG) - double(imgG))+...
-         abs(double(bkgB) - double(imgB))) > 128;
-    y = imclose(Y, strel('disk',32,8));
-    subplot(2,2,1); imshow(uint8(bkg));
-    subplot(2,2,2); imshow(Y);
-    subplot(2,2,3); imshow(uint8(img));
-    %imshow(uint8(img));
-    stats = regionprops(bwlabel(Y,8), 'Area', 'BoundingBox');
-    objIndex = find([stats.Area] > 1000);
+         abs(double(bkgB) - double(imgB))) > 360;
+    Y = imopen(Y, strel('disk',1,8));
+    Y = imclose(Y, strel('disk',8,8));
+    Y = imclose(Y, strel('disk',4,8));
+    stats = regionprops(logical(Y), 'Area', 'BoundingBox');
+    objIndex = find([stats.Area] > 64);
     for n = 1 : numel(objIndex)
         statsObj = stats(objIndex);
         boundingBoxI = statsObj(n).BoundingBox;
@@ -98,8 +97,15 @@ for n = 1 : stepN : N
         'EdgeColor',[0 1 0],...
         'FaceColor',[0 1 0 0.2]);
     end
+    
+    heatmap = heatmap + Y;
+    
     drawnow;
-    %BW = img;
-    %pause(.2)
+    pause(0.01);
+    
 end
+
+figure, imshow(mat2gray(heatmap)); 
+title('Heatmap');
+colors = colormap(jet(N));
 %you have now loaded all of the data.
