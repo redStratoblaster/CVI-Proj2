@@ -47,6 +47,7 @@ imgName = sprintf('%.6d.jpg', 1);
 img = imread(strcat(path, imgName));
 
 for i = 1:N
+    clf('reset');
     img = imread(sprintf(strcat(path,'%.6d.jpg'), i));
     imshow(img);
     
@@ -64,7 +65,7 @@ for i = 1:N
         firstLine = truthMatrix(1,:);
     end
     
-    %plot the trajectories
+    %plot the detected regions
     imgR = img(:,:,1);
     imgG = img(:,:,2);
     imgB = img(:,:,3);
