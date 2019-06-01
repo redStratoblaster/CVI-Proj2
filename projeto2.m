@@ -6,6 +6,7 @@ truthMatrix = [];
 stepN = 1;
 alfa = 0.01;
 
+
 % Ground truth data format
 % 1 - Frame number - Indicate at which frame the object is present
 % 2 - Identity number - Each pedestrian trajectory is identified by a unique ID (?1 for detections)
@@ -45,11 +46,14 @@ end
 
 imgName = sprintf('%.6d.jpg', 1);
 img = imread(strcat(path, imgName));
+[height, width, colors] = size(img);
+heatmap = zeros(height, width);
 
 for i = 1:N
     clf('reset');
     img = imread(sprintf(strcat(path,'%.6d.jpg'), i));
     imshow(img);
+    hold on;
     
     %plot the ground truth
     firstLine = truthMatrix(1,:);
@@ -74,12 +78,12 @@ for i = 1:N
     bkgB = bkg(:,:,3);
     Y = (abs(double(bkgR) - double(imgR))+...
          abs(double(bkgG) - double(imgG))+...
-         abs(double(bkgB) - double(imgB))) > 100;
+         abs(double(bkgB) - double(imgB))) > 360;
     Y = imopen(Y, strel('disk',1,8));
     Y = imclose(Y, strel('disk',8,8));
     Y = imclose(Y, strel('disk',4,8));
     stats = regionprops(logical(Y), 'Area', 'BoundingBox');
-    objIndex = find([stats.Area] > 1000);
+    objIndex = find([stats.Area] > 64);
     for n = 1 : numel(objIndex)
         statsObj = stats(objIndex);
         boundingBoxI = statsObj(n).BoundingBox;
@@ -92,8 +96,14 @@ for i = 1:N
         'FaceColor',[0 1 0 0.2]);
     end
     
+    heatmap = heatmap + Y;
+    
     drawnow;
     pause(0.01);
-    hold on
+    
 end
+
+figure, imshow(mat2gray(heatmap)); 
+title('Heatmap');
+colors = colormap(jet(N));
 %you have now loaded all of the data.
