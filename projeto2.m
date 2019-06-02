@@ -1,6 +1,7 @@
 clear all, close all;
 
 path = '3DMOT2015/test/PETS09-S2L2/img1/';
+imgName = sprintf('%.6d.jpg', 1);
 N = 436;
 truthMatrix = [];
 stepN = 1;
@@ -39,16 +40,18 @@ end
   fclose(fid);
 
 %calculate background
-bkg=imread(sprintf(strcat(path,'%.6d.jpg'), i));
+bkg = imread(strcat(path, imgName));
 for i = 1:N
     img = imread(sprintf(strcat(path,'%.6d.jpg'), i));
     bkg = alfa * double(img) + (1-alfa) * double(bkg);
 end
 
-imgName = sprintf('%.6d.jpg', 1);
-img = imread(strcat(path, imgName));
+
+Img = imread(strcat(path, imgName));
 [height, width, colors] = size(img);
 heatmap = zeros(height, width);
+dotArray = [];
+gtDotArray = [];
 
 for i = 1:N
     clf('reset');
@@ -66,6 +69,15 @@ for i = 1:N
                firstLine(6)],...
               'EdgeColor',[1 1 0],...
               'FaceColor',[1 1 0 0.05]);
+          
+        row = round(firstLine(4)+firstLine(6));
+        column = round(firstLine(3)+firstLine(5)/2);
+        
+        dotXY = [column, row]; % column = x, row = y
+        if 1 < column && column < width && row < height && 1 < row
+            gtDotArray = vertcat(gtDotArray, dotXY);
+        end
+        
         truthMatrix(1,:) = [];
         [r, c] = size(truthMatrix);
         if r ~= 0
@@ -100,6 +112,14 @@ for i = 1:N
         boundingBoxI(4)],...
         'EdgeColor',[0 1 0],...
         'FaceColor',[0 1 0 0.2]);
+    
+        row = round(boundingBoxI(2)+boundingBoxI(4));
+        column = round(boundingBoxI(1)+boundingBoxI(3)/2);
+        
+        dotXY = [column, row]; % column = x, row = y
+        if 1 < column && column < width && row < height && 1 < row
+            dotArray = vertcat(dotArray, dotXY);
+        end
     end
     
     heatmap = heatmap + Y;
@@ -108,6 +128,23 @@ for i = 1:N
     pause(0.01);
     
 end
+
+figure, imshow(Img);
+hold on;
+[r,c] = size(gtDotArray);
+for i = 1 : r
+    line = gtDotArray(i,:);
+    plot(line(1),line(2),'.','Color','yellow','MarkerSize', 10);
+end
+
+figure, imshow(Img);
+hold on;
+[r,c] = size(dotArray);
+for i = 1 : r
+    line = dotArray(i,:);
+    plot(line(1),line(2),'g.','MarkerSize', 10);
+end
+
 
 figure, imshow(mat2gray(heatmap)); 
 title('Heatmap');
