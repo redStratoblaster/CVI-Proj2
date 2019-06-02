@@ -45,10 +45,10 @@ for n = 1 : stepN : N
     bkgB = bkg(:,:,3);
     Y = (abs(double(bkgR) - double(imgR))+...
          abs(double(bkgG) - double(imgG))+...
-         abs(double(bkgB) - double(imgB))) > 360;
+         abs(double(bkgB) - double(imgB))) > 250;
     %Y = imopen(Y, strel('disk',1,8));
     %Y = imopen(Y, strel('disk',1,8));
-    %Y = imclose(Y, strel('disk',8,8));
+    %Y = imclose(Y, strel('disk',2));
     %Y = imopen(Y, strel('disk',1,4));
     %Y = imclose(Y, strel('disk',1,4));
     %Y = imdilate(Y, strel('disk',4,8));
@@ -56,7 +56,8 @@ for n = 1 : stepN : N
     
     
     %subplot(2,2,3); imshow(Y);
-    subplot(1,2,1); imshow(uint8(img1));
+    %subplot(1,2,1); imshow(logical(Y));
+    subplot(1,2,1); imshow(uint8(img1s));
     hold on;
     
     stats = regionprops(logical(Y), 'Area', 'BoundingBox');
