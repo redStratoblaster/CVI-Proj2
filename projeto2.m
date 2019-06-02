@@ -1,6 +1,7 @@
 clear all, close all;
 
 path = '3DMOT2015/test/PETS09-S2L2/img1/';
+%path = '3DMOT2015/test/AVG-TownCentre/img1/';
 imgName = sprintf('%.6d.jpg', 1);
 N = 436;
 truthMatrix = [];
