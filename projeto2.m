@@ -53,6 +53,8 @@ Img = imread(strcat(path, imgName));
 heatmap = zeros(height, width);
 dotArray = [];
 gtDotArray = [];
+pastFrame_pedestrians = {};
+pastFrame_shownPedestrians = {};
 
 for i = 1:N
     clf('reset');
@@ -95,31 +97,43 @@ for i = 1:N
     bkgR = bkg(:,:,1);
     bkgG = bkg(:,:,2);
     bkgB = bkg(:,:,3);
-    Y = (abs(double(bkgR) - double(imgR))+...
-         abs(double(bkgG) - double(imgG))+...
-         abs(double(bkgB) - double(imgB))) > 360;
+    Y = pedestrian_detection(bkg,img);
     Y = imopen(Y, strel('disk',1,8));
     Y = imclose(Y, strel('disk',8,8));
     Y = imclose(Y, strel('disk',4,8));
-    stats = regionprops(logical(Y), 'Area', 'BoundingBox');
-    objIndex = find([stats.Area] > 64);
-    for n = 1 : numel(objIndex)
-        statsObj = stats(objIndex);
-        boundingBoxI = statsObj(n).BoundingBox;
-        rectangle('Position',...
-        [boundingBoxI(1),...
-        boundingBoxI(2),...
-        boundingBoxI(3),...
-        boundingBoxI(4)],...
-        'EdgeColor',[0 1 0],...
-        'FaceColor',[0 1 0 0.2]);
     
-        row = round(boundingBoxI(2)+boundingBoxI(4));
-        column = round(boundingBoxI(1)+boundingBoxI(3)/2);
+    
+    pedestrians = area_validation(logical(Y));
+    
+    if(i~=1)
+        [finalPedestrians, pedestriansToShow] = track_pedestrians(pedestrians,pastFrame_pedestrians,i);
+    else
+        finalPedestrians = [];
+        pedestriansToShow = [];
+        for j=1:1:length(pedestrians)
+            color = [rand ,rand ,rand];
+            s = struct('Area',pedestrians(j).Area,'Centroid',pedestrians(j).Centroid,'Numb',j,'BoundingBox',pedestrians(j).BoundingBox, 'Color', color);
+            finalPedestrians = [finalPedestrians; s];
+            pedestriansToShow = [pedestriansToShow, s];
+        end;
+    end;
+    
+    pastFrame_pedestrians{i} = finalPedestrians;
+    pastFrame_shownPedestrians{i} = pedestriansToShow;
+    
+    if(~isempty(pedestriansToShow))
+        for j=1:length(pedestriansToShow)
+            BB = pedestriansToShow(j).BoundingBox;
+            color = [rand ,rand ,rand];
+            rectangle('Position',BB,'EdgeColor',pedestriansToShow(j).Color,'linewidth',2);
         
-        dotXY = [column, row]; % column = x, row = y
-        if 1 < column && column < width && row < height && 1 < row
-            dotArray = vertcat(dotArray, dotXY);
+            row = round(BB(2)+BB(4));
+            column = round(BB(1)+BB(3)/2);
+
+            dotXY = [column, row]; % column = x, row = y
+            if 1 < column && column < width && row < height && 1 < row
+                dotArray = vertcat(dotArray, dotXY);
+            end
         end
     end
     
