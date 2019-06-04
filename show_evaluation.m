@@ -8,13 +8,14 @@ function show_evaluation (path, stepN, N, alfa, imgName, bkg, img, truthMatrix)
 
     gtDotArray = [];
     
+    metrics = [];
+    
     for n = 1 : stepN : N
         imgName = sprintf('%.6d.jpg', n);
         img1 = imread(strcat(path, imgName));
         bkg = alfa * double(img1) + (1-alfa) * double(bkg);
     end
 
-    figure;
     dotArray = [];
     [height, width, colors] = size(img);
     heatmap = zeros(height, width);
@@ -22,7 +23,7 @@ function show_evaluation (path, stepN, N, alfa, imgName, bkg, img, truthMatrix)
     for n = 1 : stepN : N
         imgName = sprintf('%.6d.jpg', n);
         img1 = imread(strcat(path, imgName));
-
+        disp([num2str(n*100/N) '%']);
         [lb num] = pedestrian_detection(bkg,img1);
         
         subplot(1,2,1);imshow(uint8(img1));title('Ground Truth and Pedestrian Detection');
@@ -124,4 +125,23 @@ function show_evaluation (path, stepN, N, alfa, imgName, bkg, img, truthMatrix)
         hold on;
         drawnow;
     end
+    
+    figure;
+    precisions = [];
+    recalls = [];
+    
+    [r, ~] = size(metrics);
+    for i=1:r
+        frame = metrics(i,:);
+        precision = frame(1)/(frame(1) + frame(2));
+        recall = frame(1)/(frame(1) + frame(3));
+        
+        precisions = [precisions precision];
+        recalls = [recalls recall];
+    end
+    
+    [recalls, sortedIndexes] = sort(recalls);
+    precisions = precisions(sortedIndexes);
+    plot(recalls, precisions);
+    xlabel('Recall'); ylabel('Precision');
 end

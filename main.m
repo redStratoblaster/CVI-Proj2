@@ -33,7 +33,7 @@ end
   fclose(fid);
 
 while true
-    prompt = 'Select an action:\n 1- Show Pedestrians;\n 2- Show Heatmap;\n 3- Show Trajectories;\n 4- Show map of trajectories;\n 5- Exit; \n';
+    prompt = 'Select an action:\n 1- Show Pedestrians;\n 2- Show Heatmap;\n 3- Show Trajectories;\n 4- Show map of trajectories;\n 5- Show Evaluation; \n 6- Exit; \n';
     x = input(prompt)
     if(x == 1)
         show_pedestrians(path, stepN, N, alfa, imgName, bkg, img, truthMatrix);
@@ -44,6 +44,8 @@ while true
     elseif(x == 4)
         show_trajectories_map(path, stepN, N, alfa, imgName, bkg, img, truthMatrix);
     elseif(x == 5)
+        show_evaluation(path, stepN, N, alfa, imgName, bkg, img, truthMatrix);
+    elseif(x == 6)
         break;
     end
 end
